@@ -68,10 +68,13 @@ MiMapLockedPagesInUserSpace(
     IsIoMapping = (Mdl->MdlFlags & MDL_IO_SPACE) != 0;
     CacheAttribute = MiPlatformCacheAttributes[IsIoMapping][CacheType];
 
-    /* Large pages are always cached, make sure we're not asking for those */
-    if (CacheAttribute != MiCached)
+    /* Check if Large Page has been Cached */
+    if ((CacheAttribute != MiCached) && 
+        (MiAddressToPde(StartVa)->u.Hard.Valid) && 
+        (MiAddressToPde(StartVa)->u.Hard.LargePage))
     {
-        DPRINT1("FIXME: Need to check for large pages\n");
+        DPRINT1("Non-cached large page mapping at %p\n", StartVa);
+        return NULL;
     }
 
     Status = PsChargeProcessNonPagedPoolQuota(Process, sizeof(MMVAD_LONG));
