@@ -146,10 +146,14 @@ CSR_API(SrvGetThreadConsoleDesktop)
 
     Status = GetThreadConsoleDesktop(GetThreadConsoleDesktopRequest->ThreadId,
                                      &GetThreadConsoleDesktopRequest->ConsoleDesktop);
-    if (!NT_SUCCESS(Status))
+    
+    /*To Reduce Spam on Nvidia Cards lock to one print*/
+    static BOOLEAN AlreadyLogged = FALSE;
+    if (!NT_SUCCESS(Status) && !AlreadyLogged)
     {
         DPRINT1("GetThreadConsoleDesktop(%lu) failed with Status 0x%08x\n",
                 GetThreadConsoleDesktopRequest->ThreadId, Status);
+        AlreadyLogged = TRUE;
     }
 
     /* Windows-compatibility: Always return success since User32 relies on this! */
